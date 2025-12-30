@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:user']);
+        // $this->middleware(['auth', 'role:user']);
     }
 
     public function index(Request $request)

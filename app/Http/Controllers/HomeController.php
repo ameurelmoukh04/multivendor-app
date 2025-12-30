@@ -11,7 +11,7 @@ class HomeController extends Controller
     public function index()
     {
         $user = Auth::user();
-
+        // dd('the user role is normal user');
         return match($user->role) {
             'admin' => redirect()->route('admin.dashboard'),
             'vendor' => redirect()->route('vendor.dashboard'),
