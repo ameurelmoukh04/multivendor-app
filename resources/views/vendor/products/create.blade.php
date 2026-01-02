@@ -6,7 +6,7 @@
 <h1 style="margin-bottom: 2rem;">Create New Product</h1>
 
 <div class="card">
-    <form method="POST" action="{{ route('vendor.products.store') }}">
+    <form method="POST" action="{{ route('vendor.products.store') }}" enctype="multipart/form-data">
         @csrf
         
         <div class="form-group">
@@ -43,18 +43,26 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
-                <label for="sku">SKU *</label>
-                <input type="text" id="sku" name="sku" class="form-control" value="{{ old('sku') }}" required>
-            </div>
+        <div class="form-group">
+            <label for="sku">SKU *</label>
+            <input type="text" id="sku" name="sku" class="form-control" value="{{ old('sku') }}" required>
+        </div>
 
-            <div class="form-group">
-                <label for="status">Status *</label>
-                <select id="status" name="status" class="form-control" required>
-                    <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                </select>
+        <div class="form-group">
+            <label for="images">Product Images *</label>
+            <input type="file" id="images" name="images[]" class="form-control" accept="image/*" multiple required>
+            <small class="form-text text-muted">You can upload multiple images. Supported formats: JPEG, PNG, JPG, GIF. Max size: 2MB per image.</small>
+            @error('images')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
+            @error('images.*')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="form-group">
+            <div class="alert alert-info">
+                <strong>Note:</strong> Products are automatically set to pending status and will require admin approval before being published.
             </div>
         </div>
 

@@ -49,8 +49,23 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('display_order');
+    }
+
     // Scopes
     public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeApproved($query)
     {
         return $query->where('status', 'active');
     }

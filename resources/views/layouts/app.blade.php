@@ -235,6 +235,7 @@
                     <a href="{{ route('admin.dashboard') }}">Dashboard</a>
                     <a href="{{ route('admin.categories.index') }}">Categories</a>
                     <a href="{{ route('admin.vendors.index') }}">Vendors</a>
+                    <a href="{{ route('admin.products.index') }}">Products</a>
                 @elseif(auth()->user()->isVendor())
                     <a href="{{ route('vendor.dashboard') }}">Dashboard</a>
                     <a href="{{ route('vendor.products.index') }}">Products</a>

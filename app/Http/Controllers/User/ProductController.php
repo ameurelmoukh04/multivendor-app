@@ -16,7 +16,7 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = Product::active()->with(['vendor', 'category']);
+        $query = Product::active()->with(['vendor', 'category', 'images']);
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%')
@@ -35,7 +35,7 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::active()->with(['vendor', 'category', 'reviews.client'])->findOrFail($id);
+        $product = Product::active()->with(['vendor', 'category', 'reviews.client', 'images'])->findOrFail($id);
         return view('user.products.show', compact('product'));
     }
 }

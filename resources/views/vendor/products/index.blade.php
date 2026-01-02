@@ -30,7 +30,15 @@
                     <td>{{ $product->stock }}</td>
                     <td>{{ $product->sku }}</td>
                     <td>
-                        <span class="badge badge-{{ $product->status === 'active' ? 'success' : 'danger' }}">
+                        @php
+                            $badgeClass = match($product->status) {
+                                'active' => 'success',
+                                'pending' => 'warning',
+                                'inactive' => 'danger',
+                                default => 'secondary'
+                            };
+                        @endphp
+                        <span class="badge badge-{{ $badgeClass }}">
                             {{ ucfirst($product->status) }}
                         </span>
                     </td>

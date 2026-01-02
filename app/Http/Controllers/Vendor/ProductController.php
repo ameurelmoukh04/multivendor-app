@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -49,15 +51,29 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'sku' => 'required|string|unique:products,sku',
-            'status' => 'required|in:active,inactive',
+            'images' => 'required|array|min:1',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $validated['vendor_id'] = $vendor->id;
         $validated['slug'] = Str::slug($validated['name']) . '-' . time();
+        $validated['status'] = 'pending'; // Set status to pending by default
 
-        Product::create($validated);
+        $product = Product::create($validated);
 
-        return redirect()->route('vendor.products.index')->with('success', 'Product created successfully');
+        // Handle multiple image uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $image) {
+                $imagePath = $image->store('products', 'public');
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $imagePath,
+                    'display_order' => $index,
+                ]);
+            }
+        }
+
+        return redirect()->route('vendor.products.index')->with('success', 'Product created successfully and is pending approval');
     }
 
     /**
@@ -66,7 +82,7 @@ class ProductController extends Controller
     public function show(string $id)
     {
         $vendor = Auth::user()->vendor;
-        $product = Product::where('vendor_id', $vendor->id)->with(['category', 'reviews'])->findOrFail($id);
+        $product = Product::where('vendor_id', $vendor->id)->with(['category', 'reviews', 'images'])->findOrFail($id);
         return view('vendor.products.show', compact('product'));
     }
 
@@ -76,7 +92,7 @@ class ProductController extends Controller
     public function edit(string $id)
     {
         $vendor = Auth::user()->vendor;
-        $product = Product::where('vendor_id', $vendor->id)->findOrFail($id);
+        $product = Product::where('vendor_id', $vendor->id)->with('images')->findOrFail($id);
         $categories = Category::all();
         return view('vendor.products.edit', compact('product', 'categories'));
     }
@@ -96,16 +112,62 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'sku' => 'required|string|unique:products,sku,' . $id,
-            'status' => 'required|in:active,inactive',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'existing_images' => 'nullable|array',
+            'existing_images.*' => 'exists:product_images,id',
         ]);
 
         if ($product->name !== $validated['name']) {
             $validated['slug'] = Str::slug($validated['name']) . '-' . time();
         }
 
+        // If product is being updated, set status back to pending for re-approval
+        if ($product->status !== 'pending') {
+            $validated['status'] = 'pending';
+        }
+
         $product->update($validated);
 
-        return redirect()->route('vendor.products.index')->with('success', 'Product updated successfully');
+        // Handle existing images deletion
+        $existingImageIds = $request->input('existing_images', []);
+        
+        // Delete images that are not in the existing_images array
+        $imagesToDelete = $product->images()->whereNotIn('id', $existingImageIds)->get();
+        
+        foreach ($imagesToDelete as $image) {
+            Storage::disk('public')->delete($image->image_path);
+            $image->delete();
+        }
+
+        // Reorder remaining existing images
+        $remainingImages = $product->images()->whereIn('id', $existingImageIds)->orderBy('id')->get();
+        foreach ($remainingImages as $index => $image) {
+            $image->update(['display_order' => $index]);
+        }
+        $currentOrder = $remainingImages->count();
+
+        // Handle new image uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $imagePath = $image->store('products', 'public');
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $imagePath,
+                    'display_order' => $currentOrder++,
+                ]);
+            }
+        }
+
+        // Refresh product to get updated image count
+        $product->refresh();
+        
+        // Ensure at least one image exists
+        if ($product->images()->count() === 0) {
+            return redirect()->back()->withErrors(['images' => 'Product must have at least one image.'])->withInput();
+        }
+
+        return redirect()->route('vendor.products.index')->with('success', 'Product updated successfully and is pending approval');
     }
 
     /**
@@ -115,6 +177,13 @@ class ProductController extends Controller
     {
         $vendor = Auth::user()->vendor;
         $product = Product::where('vendor_id', $vendor->id)->findOrFail($id);
+        
+        // Delete associated images
+        foreach ($product->images as $image) {
+            Storage::disk('public')->delete($image->image_path);
+            $image->delete();
+        }
+        
         $product->delete();
 
         return redirect()->route('vendor.products.index')->with('success', 'Product deleted successfully');

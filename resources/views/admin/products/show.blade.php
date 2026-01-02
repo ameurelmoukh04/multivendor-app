@@ -7,22 +7,21 @@
 
 <div class="card">
     <div style="margin-bottom: 2rem;">
-        <a href="{{ route('vendor.products.edit', $product->id) }}" class="btn btn-primary">Edit Product</a>
-        <a href="{{ route('vendor.products.index') }}" class="btn btn-secondary">Back to Products</a>
+        <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">Back to Products</a>
     </div>
 
     <table class="table">
         <tr>
-            <th style="width: 200px;">Name</th>
+            <th style="width: 200px;">Product Name</th>
             <td>{{ $product->name }}</td>
+        </tr>
+        <tr>
+            <th>Vendor</th>
+            <td>{{ $product->vendor->store_name }}</td>
         </tr>
         <tr>
             <th>Category</th>
             <td>{{ $product->category->name }}</td>
-        </tr>
-        <tr>
-            <th>SKU</th>
-            <td>{{ $product->sku }}</td>
         </tr>
         <tr>
             <th>Price</th>
@@ -31,6 +30,10 @@
         <tr>
             <th>Stock</th>
             <td>{{ $product->stock }}</td>
+        </tr>
+        <tr>
+            <th>SKU</th>
+            <td>{{ $product->sku }}</td>
         </tr>
         <tr>
             <th>Status</th>
@@ -56,8 +59,8 @@
 
     @if($product->images->count() > 0)
         <div style="margin-top: 2rem;">
-            <h2 style="margin-bottom: 1rem;">Product Images</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+            <h3>Product Images</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
                 @foreach($product->images as $image)
                     <div style="border: 1px solid #ddd; padding: 0.5rem; border-radius: 4px;">
                         <img src="{{ asset('storage/' . $image->image_path) }}" alt="Product Image" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px;">
@@ -67,19 +70,21 @@
         </div>
     @endif
 
-    <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Reviews</h2>
-    @forelse($product->reviews as $review)
-        <div style="padding: 1rem; border-bottom: 1px solid #eee; margin-bottom: 1rem;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                <strong>{{ $review->client->name }}</strong>
-                <span class="badge badge-info">{{ $review->rating }} / 5</span>
+    @if($product->status === 'pending')
+        <div style="margin-top: 2rem; padding: 1.5rem; background-color: #f8f9fa; border-radius: 4px;">
+            <h3 style="margin-bottom: 1rem;">Product Actions</h3>
+            <div style="display: flex; gap: 1rem;">
+                <form action="{{ route('admin.products.approve', $product->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-success">Approve Product</button>
+                </form>
+                <form action="{{ route('admin.products.reject', $product->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-danger">Reject Product</button>
+                </form>
             </div>
-            <p style="color: #555;">{{ $review->comment }}</p>
-            <small style="color: #7f8c8d;">{{ $review->created_at->format('M d, Y') }}</small>
         </div>
-    @empty
-        <p style="color: #7f8c8d; padding: 2rem; text-align: center;">No reviews yet.</p>
-    @endforelse
+    @endif
 </div>
 @endsection
 

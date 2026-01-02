@@ -32,6 +32,17 @@
     </div>
 
     <div class="card">
+        @if($product->images->count() > 0)
+            <h2 style="margin-bottom: 1rem;">Product Images</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                @foreach($product->images as $image)
+                    <div style="border: 1px solid #ddd; padding: 0.5rem; border-radius: 4px;">
+                        <img src="{{ asset('storage/' . $image->image_path) }}" alt="Product Image" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px;">
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         <h2 style="margin-bottom: 1rem;">Reviews</h2>
         @forelse($product->reviews as $review)
             <div style="padding: 1rem; border-bottom: 1px solid #eee; margin-bottom: 1rem;">

@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\VendorController as AdminVendorController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Controllers\Vendor\ProductController as VendorProductController;
 use App\Http\Controllers\User\ProductController as UserProductController;
@@ -28,6 +29,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/vendors', [AdminVendorController::class, 'index'])->name('vendors.index');
     Route::get('/vendors/{id}', [AdminVendorController::class, 'show'])->name('vendors.show');
     Route::post('/vendors/{id}/status', [AdminVendorController::class, 'updateStatus'])->name('vendors.updateStatus');
+    Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{id}', [AdminProductController::class, 'show'])->name('products.show');
+    Route::post('/products/{id}/approve', [AdminProductController::class, 'approve'])->name('products.approve');
+    Route::post('/products/{id}/reject', [AdminProductController::class, 'reject'])->name('products.reject');
 });
 
 // Vendor routes
