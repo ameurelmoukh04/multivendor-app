@@ -51,7 +51,9 @@
         <div class="form-group">
             <label for="images">Product Images *</label>
             <input type="file" id="images" name="images[]" class="form-control" accept="image/*" multiple required>
-            <small class="form-text text-muted">You can upload multiple images. Supported formats: JPEG, PNG, JPG, GIF. Max size: 2MB per image.</small>
+            <small class="form-text text-muted">
+                You can upload multiple images. Supported formats: JPEG, PNG, JPG, GIF. Max size: 2MB per image.
+            </small>
             @error('images')
                 <div class="text-danger">{{ $message }}</div>
             @enderror
@@ -73,4 +75,3 @@
     </form>
 </div>
 @endsection
-

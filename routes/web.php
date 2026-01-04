@@ -48,3 +48,16 @@ Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(f
     Route::get('/orders', [UserOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{id}', [UserOrderController::class, 'show'])->name('orders.show');
 });
+use App\Http\Controllers\Admin\ProductApprovalController;
+
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    Route::get('/products/pending', [ProductApprovalController::class, 'index'])->name('admin.products.pending');
+    Route::post('/products/{id}/approve', [ProductApprovalController::class, 'approve'])->name('admin.products.approve');
+});
+Route::prefix('admin')->middleware('auth')->group(function () {
+    Route::get('/dashboard', [
+        \App\Http\Controllers\Admin\AdminDashboardController::class,
+        'index'
+    ])->name('admin.dashboard');
+});
+
