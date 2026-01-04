@@ -16,18 +16,8 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = Product::active()->with(['vendor', 'category', 'images']);
-
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('category')) {
-            $query->where('category_id', $request->category);
-        }
-
-        $products = $query->latest()->paginate(12);
+        // Get all active products for client-side filtering
+        $products = Product::active()->with(['vendor', 'category', 'images'])->latest()->get();
         $categories = Category::all();
 
         return view('user.products.index', compact('products', 'categories'));
