@@ -1,68 +1,90 @@
-@extends('layouts.app')
-
-@section('title', 'Register')
-
-@section('content')
-<div class="card" style="max-width: 500px; margin: 4rem auto;">
-    <h2 style="margin-bottom: 2rem; text-align: center;">Register</h2>
-    
+<x-guest-layout>
     <form method="POST" action="{{ route('register') }}">
         @csrf
-        
-        <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" class="form-control" value="{{ old('name') }}" required autofocus>
+
+        <!-- Name -->
+        <div>
+            <x-input-label for="name" :value="__('Name')" />
+            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+            <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" class="form-control" value="{{ old('email') }}" required>
+        <!-- Email Address -->
+        <div class="mt-4">
+            <x-input-label for="email" :value="__('Email')" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+            <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" class="form-control" required>
+        <!-- Password -->
+        <div class="mt-4">
+            <x-input-label for="password" :value="__('Password')" />
+
+            <x-text-input id="password" class="block mt-1 w-full"
+                            type="password"
+                            name="password"
+                            required autocomplete="new-password" />
+
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <div class="form-group">
-            <label for="password_confirmation">Confirm Password</label>
-            <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" required>
+        <!-- Confirm Password -->
+        <div class="mt-4">
+            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+
+            <x-text-input id="password_confirmation" class="block mt-1 w-full"
+                            type="password"
+                            name="password_confirmation" required autocomplete="new-password" />
+
+            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="form-group">
-            <label for="role">Register as</label>
-            <select id="role" name="role" class="form-control" required>
-                <option value="user">User</option>
-                <option value="vendor">Vendor</option>
+        <!-- Role Selection -->
+        <div class="mt-4">
+            <x-input-label for="role" :value="__('Register as')" />
+            <select id="role" name="role" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
+                <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>Customer</option>
+                <option value="vendor" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
             </select>
+            <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>
 
-        <div class="form-group" id="store-name-group" style="display: none;">
-            <label for="store_name">Store Name</label>
-            <input type="text" id="store_name" name="store_name" class="form-control" value="{{ old('store_name') }}">
+        <!-- Store Name (for vendors) -->
+        <div class="mt-4" id="store-name-field" style="display: none;">
+            <x-input-label for="store_name" :value="__('Store Name')" />
+            <x-text-input id="store_name" class="block mt-1 w-full" type="text" name="store_name" :value="old('store_name')" autocomplete="organization" />
+            <x-input-error :messages="$errors->get('store_name')" class="mt-2" />
         </div>
 
-        <div class="form-group">
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
-        </div>
+        <div class="flex items-center justify-end mt-4">
+            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
+                {{ __('Already registered?') }}
+            </a>
 
-        <div style="text-align: center; margin-top: 1rem;">
-            <a href="{{ route('login') }}">Already have an account? Login here</a>
+            <x-primary-button class="ms-4">
+                {{ __('Register') }}
+            </x-primary-button>
         </div>
     </form>
-</div>
 
-<script>
-    document.getElementById('role').addEventListener('change', function() {
-        const storeNameGroup = document.getElementById('store-name-group');
-        if (this.value === 'vendor') {
-            storeNameGroup.style.display = 'block';
+    <script>
+        document.getElementById('role').addEventListener('change', function() {
+            const storeNameField = document.getElementById('store-name-field');
+            const storeNameInput = document.getElementById('store_name');
+            if (this.value === 'vendor') {
+                storeNameField.style.display = 'block';
+                storeNameInput.required = true;
+            } else {
+                storeNameField.style.display = 'none';
+                storeNameInput.required = false;
+                storeNameInput.value = '';
+            }
+        });
+
+        // Show store name field on page load if vendor is already selected
+        if (document.getElementById('role').value === 'vendor') {
+            document.getElementById('store-name-field').style.display = 'block';
             document.getElementById('store_name').required = true;
-        } else {
-            storeNameGroup.style.display = 'none';
-            document.getElementById('store_name').required = false;
         }
-    });
-</script>
-@endsection
-
+    </script>
+</x-guest-layout>

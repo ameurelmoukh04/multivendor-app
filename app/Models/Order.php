@@ -15,12 +15,14 @@ class Order extends Model
         'payment_method',
         'shipping_address',
         'total_amount',
+        'received_at',
     ];
 
     protected function casts(): array
     {
         return [
             'total_amount' => 'decimal:2',
+            'received_at' => 'datetime',
         ];
     }
 
