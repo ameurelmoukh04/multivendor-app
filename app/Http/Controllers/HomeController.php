@@ -15,7 +15,7 @@ class HomeController extends Controller
         return match($user->role) {
             'admin' => redirect()->route('admin.dashboard'),
             'vendor' => redirect()->route('vendor.dashboard'),
-            'user' => redirect()->route('user.products.index'),
+            'user' => redirect()->route('products.index'),
             default => redirect()->route('login'),
         };
     }

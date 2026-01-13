@@ -16,8 +16,13 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
+
         // Get all active products for client-side filtering
-        $products = Product::active()->with(['vendor', 'category', 'images'])->latest()->get();
+        $products = Product::active()
+                    ->whereHas('vendor',function($query){
+                        $query->where('status','active');
+                    })
+                    ->with(['vendor', 'category', 'images'])->latest()->get();
         $categories = Category::all();
 
         return view('user.products.index', compact('products', 'categories'));
@@ -26,6 +31,7 @@ class ProductController extends Controller
     public function show($id)
     {
         $product = Product::active()->with(['vendor', 'category', 'reviews.client', 'images'])->findOrFail($id);
+
         return view('user.products.show', compact('product'));
     }
 }

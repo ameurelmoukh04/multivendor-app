@@ -1,8 +1,7 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\VendorController as AdminVendorController;
@@ -11,16 +10,35 @@ use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController
 use App\Http\Controllers\Vendor\ProductController as VendorProductController;
 use App\Http\Controllers\User\ProductController as UserProductController;
 use App\Http\Controllers\User\OrderController as UserOrderController;
+use App\Http\Controllers\User\ReviewController as UserReviewController;
+use Illuminate\Support\Facades\Route;
 
-// Authentication routes
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
+// Home route - Products page for everyone
+Route::get('/', [UserProductController::class, 'index'])->name('home');
 
-// Authenticated routes
-    Route::middleware(['auth'])->get('/', [HomeController::class, 'index'])->name('home');
+// Breeze dashboard route
+Route::get('/dashboard', function () {
+    $user = auth()->user();
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->isVendor()) {
+        return redirect()->route('vendor.dashboard');
+    } else {
+        // For regular users, redirect to products
+        return redirect()->route('products.index');
+    }
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Public product routes (accessible without auth)
+Route::get('/products', [UserProductController::class, 'index'])->name('products.index');
+Route::get('/products/{id}', [UserProductController::class, 'show'])->name('products.show');
+
+// Profile routes (Breeze)
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -41,13 +59,16 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::resource('products', VendorProductController::class);
 });
 
+
 // User routes
 Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
-    Route::get('/products', [UserProductController::class, 'index'])->name('products.index');
-    Route::get('/products/{id}', [UserProductController::class, 'show'])->name('products.show');
     Route::get('/orders', [UserOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{id}', [UserOrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders', [UserOrderController::class, 'store'])->name('orders.store');
+    Route::post('/orders/{id}/confirm-receipt', [UserOrderController::class, 'confirmReceipt'])->name('orders.confirmReceipt');
+    Route::post('/reviews/{orderItemId}', [UserReviewController::class, 'store'])->name('reviews.store');
 });
+
 use App\Http\Controllers\Admin\ProductApprovalController;
 
 Route::prefix('admin')->middleware(['auth'])->group(function () {
