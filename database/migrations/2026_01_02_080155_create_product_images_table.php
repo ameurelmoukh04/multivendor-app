@@ -9,22 +9,22 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('product_images', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->string('image_path');
-            $table->integer('display_order')->default(0);
-            $table->timestamps();
-        });
-    }
+   public function up()
+{
+    Schema::create('product_images', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('product_id')->constrained()->onDelete('cascade');
+        $table->string('image');
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-        Schema::dropIfExists('product_images');
-    }
+    public function down()
+{
+    Schema::dropIfExists('product_images');
+}
+
 };
